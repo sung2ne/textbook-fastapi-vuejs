@@ -28,6 +28,12 @@ async function deletePost() {
 <template>
   <div v-if="post">
     <h2>{{ post.title }}</h2>
+    <img
+      v-if="post.image_url"
+      :src="`${api.defaults.baseURL}${post.image_url}`"
+      :alt="post.title"
+      style="max-width: 100%; height: auto;"
+    />
     <p>{{ post.content }}</p>
     <p>작성일: {{ new Date(post.created_at).toLocaleDateString() }}</p>
     <RouterLink :to="`/posts/${post.id}/edit`">수정</RouterLink>
