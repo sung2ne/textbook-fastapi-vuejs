@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
 
 app = FastAPI()
 
@@ -14,20 +14,13 @@ def hello():
 
 
 @app.get("/posts")
-def list_posts():
-    return {"posts": [{"id": 1, "title": "첫 번째 글"}]}
+def get_posts():
+    return [
+        {"id": 1, "title": "첫 번째 게시글"},
+        {"id": 2, "title": "두 번째 게시글"},
+    ]
 
 
-@app.post("/posts")
-def create_post():
-    return {"message": "게시글이 생성되었습니다"}
-
-
-@app.put("/posts/{post_id}")
-def update_post(post_id: int):
-    return {"message": f"{post_id}번 게시글이 수정되었습니다"}
-
-
-@app.delete("/posts/{post_id}")
-def delete_post(post_id: int):
-    return {"message": f"{post_id}번 게시글이 삭제되었습니다"}
+@app.get("/posts/{post_id}")
+def get_post(post_id: int = Path(ge=1, description="게시글 ID")):
+    return {"post_id": post_id, "title": f"게시글 {post_id}"}
