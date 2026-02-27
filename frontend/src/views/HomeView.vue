@@ -2,30 +2,20 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import api from '@/api'
+import { useFetch } from '@/composables/useFetch'
 
 const router = useRouter()
-const posts = ref([])
-const isLoading = ref(true)
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(0)
+
+const { data, error, loading, execute: fetchPosts } = useFetch('/posts')
 
 async function loadPosts() {
-  isLoading.value = true
-  try {
-    const response = await api.get('/posts', {
-      params: {
-        page: currentPage.value,
-        size: pageSize.value,
-      },
-    })
-    posts.value = response.data.items
-    total.value = response.data.total
-  } catch (error) {
+  await fetchPosts({
+    params: { page: currentPage.value, size: pageSize.value },
+  })
+  if (error.value) {
     ElMessage.error('게시글 목록을 불러오지 못했습니다.')
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -55,8 +45,8 @@ function goToDetail(row) {
     </el-button>
 
     <el-table
-      :data="posts"
-      v-loading="isLoading"
+      :data="data?.items || []"
+      v-loading="loading"
       stripe
       style="margin-top: 16px"
       @row-click="goToDetail"
@@ -71,9 +61,9 @@ function goToDetail(row) {
     </el-table>
 
     <el-pagination
-      v-if="total > pageSize"
+      v-if="(data?.total || 0) > pageSize"
       layout="prev, pager, next"
-      :total="total"
+      :total="data?.total || 0"
       :page-size="pageSize"
       :current-page="currentPage"
       style="margin-top: 16px; justify-content: center"

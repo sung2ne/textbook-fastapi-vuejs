@@ -1,44 +1,33 @@
 <script setup>
-import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useForm } from '@/composables/useForm'
 import api from '@/api'
 
 const router = useRouter()
-const formRef = ref(null)
-const isSubmitting = ref(false)
 
-const form = reactive({
-  title: '',
-  content: '',
-})
+const { formRef, form, rules, submitting, handleSubmit } = useForm(
+  { title: '', content: '' },
+  {
+    title: [
+      { required: true, message: '제목을 입력해주세요', trigger: 'blur' },
+      { min: 2, max: 100, message: '2~100자로 입력해주세요', trigger: 'blur' },
+    ],
+    content: [
+      { required: true, message: '내용을 입력해주세요', trigger: 'blur' },
+    ],
+  }
+)
 
-const rules = {
-  title: [
-    { required: true, message: '제목을 입력해주세요', trigger: 'blur' },
-    { min: 2, max: 100, message: '2~100자로 입력해주세요', trigger: 'blur' },
-  ],
-  content: [
-    { required: true, message: '내용을 입력해주세요', trigger: 'blur' },
-  ],
-}
-
-async function handleSubmit() {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  isSubmitting.value = true
-  try {
-    await api.post('/posts', {
-      title: form.title,
-      content: form.content,
-    })
+async function onSubmit() {
+  const success = await handleSubmit(async (data) => {
+    await api.post('/posts', { title: data.title, content: data.content })
+  })
+  if (success) {
     ElMessage.success('게시글이 작성되었습니다.')
     router.push('/')
-  } catch (error) {
+  } else {
     ElMessage.error('게시글 작성에 실패했습니다.')
-  } finally {
-    isSubmitting.value = false
   }
 }
 </script>
@@ -65,8 +54,8 @@ async function handleSubmit() {
       <el-form-item>
         <el-button
           type="primary"
-          :loading="isSubmitting"
-          @click="handleSubmit"
+          :loading="submitting"
+          @click="onSubmit"
         >
           등록
         </el-button>
