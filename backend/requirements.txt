@@ -3,3 +3,9 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 python-dotenv
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt<5.0
+pydantic-settings
+websockets
