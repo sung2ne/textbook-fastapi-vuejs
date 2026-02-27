@@ -1,13 +1,14 @@
 <script setup>
-import { ref } from 'vue'
-import Timer from './components/Timer.vue'
-
-const showTimer = ref(true)
 </script>
 
 <template>
-  <button @click="showTimer = !showTimer">
-    타이머 {{ showTimer ? '숨기기' : '보이기' }}
-  </button>
-  <Timer v-if="showTimer" />
+  <header>
+    <h1>FastAPI + Vue 게시판</h1>
+    <nav>
+      <RouterLink to="/">홈</RouterLink>
+    </nav>
+  </header>
+  <main>
+    <RouterView />
+  </main>
 </template>
