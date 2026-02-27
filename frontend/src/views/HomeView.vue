@@ -1,7 +1,35 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import api from '@/api'
+
+const posts = ref([])
+const isLoading = ref(true)
+
+onMounted(async () => {
+  try {
+    const response = await api.get('/posts')
+    posts.value = response.data
+  } catch (error) {
+    console.error('목록 로드 실패:', error)
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <template>
   <h2>게시판</h2>
-  <p>게시글 목록이 여기에 표시됩니다.</p>
+  <p v-if="isLoading">로딩 중...</p>
+  <ul v-else>
+    <li v-for="post in posts" :key="post.id">
+      <RouterLink :to="`/posts/${post.id}`">
+        {{ post.title }}
+      </RouterLink>
+      <span>{{ new Date(post.created_at).toLocaleDateString() }}</span>
+    </li>
+  </ul>
+  <p v-if="!isLoading && posts.length === 0">
+    아직 게시글이 없습니다.
+  </p>
+  <RouterLink to="/posts/new">새 글 작성</RouterLink>
 </template>

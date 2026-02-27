@@ -1,24 +1,27 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import api from '@/api'
 
 const route = useRoute()
 const router = useRouter()
-const postId = route.params.id
-
 const post = ref(null)
 
-onMounted(() => {
-  // PART 06에서 실제 API 호출로 교체합니다
-  post.value = {
-    id: postId,
-    title: `${postId}번 게시글`,
-    content: '게시글 내용입니다.',
+onMounted(async () => {
+  try {
+    const response = await api.get(`/posts/${route.params.id}`)
+    post.value = response.data
+  } catch (error) {
+    console.error('게시글 로드 실패:', error)
+    router.push('/')
   }
 })
 
-function goBack() {
-  router.push('/')
+async function deletePost() {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    await api.delete(`/posts/${route.params.id}`)
+    router.push('/')
+  }
 }
 </script>
 
@@ -26,7 +29,10 @@ function goBack() {
   <div v-if="post">
     <h2>{{ post.title }}</h2>
     <p>{{ post.content }}</p>
-    <button @click="goBack">목록으로</button>
+    <p>작성일: {{ new Date(post.created_at).toLocaleDateString() }}</p>
+    <RouterLink :to="`/posts/${post.id}/edit`">수정</RouterLink>
+    <button @click="deletePost">삭제</button>
+    <button @click="router.push('/')">목록으로</button>
   </div>
   <p v-else>로딩 중...</p>
 </template>
