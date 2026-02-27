@@ -3,8 +3,13 @@ from datetime import datetime
 
 
 class PostCreate(BaseModel):
-    title: str = Field(min_length=2, max_length=100, description="게시글 제목")
+    title: str = Field(
+        min_length=2, max_length=100, description="게시글 제목"
+    )
     content: str = Field(min_length=1, description="게시글 내용")
+    image_url: str | None = Field(
+        None, max_length=500, description="이미지 URL"
+    )
 
 
 class PostResponse(BaseModel):
@@ -13,4 +18,5 @@ class PostResponse(BaseModel):
     id: int
     title: str
     content: str
+    image_url: str | None
     created_at: datetime

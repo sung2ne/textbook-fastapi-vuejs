@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.database import engine, Base
+from app.models.post import Post  # noqa: F401
+from app.routers import post as post_router
+from app.routers import upload as upload_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="게시판 API",
@@ -9,11 +15,16 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://your-project-name.vercel.app",
-    ],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(post_router.router)
+app.include_router(upload_router.router)
+
+
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
