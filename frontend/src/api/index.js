@@ -15,7 +15,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API 에러:', error.response?.data || error.message)
+    const status = error.response?.status
+    const detail = error.response?.data?.detail || '알 수 없는 오류가 발생했습니다'
+
+    if (status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+      return Promise.reject(error)
+    }
+
+    alert(detail)
     return Promise.reject(error)
   }
 )
