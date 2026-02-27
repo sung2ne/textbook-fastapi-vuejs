@@ -1,0 +1,6 @@
+
+.env
+__pycache__/
+board.db
+*.pyc
+.venv/
