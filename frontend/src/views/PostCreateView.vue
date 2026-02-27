@@ -1,38 +1,42 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import api from '@/api'
 
 const router = useRouter()
-const title = ref('')
-const content = ref('')
+const formRef = ref(null)
 const isSubmitting = ref(false)
-const imageFile = ref(null)
 
-function handleFileChange(event) {
-  imageFile.value = event.target.files[0]
+const form = reactive({
+  title: '',
+  content: '',
+})
+
+const rules = {
+  title: [
+    { required: true, message: '제목을 입력해주세요', trigger: 'blur' },
+    { min: 2, max: 100, message: '2~100자로 입력해주세요', trigger: 'blur' },
+  ],
+  content: [
+    { required: true, message: '내용을 입력해주세요', trigger: 'blur' },
+  ],
 }
 
 async function handleSubmit() {
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+
   isSubmitting.value = true
   try {
-    let imageUrl = null
-    if (imageFile.value) {
-      const formData = new FormData()
-      formData.append('file', imageFile.value)
-      const uploadRes = await api.post('/upload/image', formData)
-      imageUrl = uploadRes.data.url
-    }
-
     await api.post('/posts', {
-      title: title.value,
-      content: content.value,
-      image_url: imageUrl,
+      title: form.title,
+      content: form.content,
     })
+    ElMessage.success('게시글이 작성되었습니다.')
     router.push('/')
   } catch (error) {
-    console.error('작성 실패:', error)
-    alert('게시글 작성에 실패했습니다.')
+    ElMessage.error('게시글 작성에 실패했습니다.')
   } finally {
     isSubmitting.value = false
   }
@@ -40,22 +44,34 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <h2>새 게시글</h2>
-  <form @submit.prevent="handleSubmit">
-    <div>
-      <label>제목</label>
-      <input v-model="title" required minlength="2" maxlength="100" />
-    </div>
-    <div>
-      <label>내용</label>
-      <textarea v-model="content" required></textarea>
-    </div>
-    <div>
-      <label>이미지</label>
-      <input type="file" accept="image/*" @change="handleFileChange" />
-    </div>
-    <button type="submit" :disabled="isSubmitting">
-      {{ isSubmitting ? '등록 중...' : '등록' }}
-    </button>
-  </form>
+  <div>
+    <h2>새 게시글</h2>
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-position="top"
+    >
+      <el-form-item label="제목" prop="title">
+        <el-input v-model="form.title" maxlength="100" show-word-limit />
+      </el-form-item>
+      <el-form-item label="내용" prop="content">
+        <el-input
+          v-model="form.content"
+          type="textarea"
+          :rows="8"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          :loading="isSubmitting"
+          @click="handleSubmit"
+        >
+          등록
+        </el-button>
+        <el-button @click="router.push('/')">취소</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>

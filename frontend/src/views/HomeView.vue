@@ -1,43 +1,83 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import api from '@/api'
-import PostCard from '@/components/PostCard.vue'
 
+const router = useRouter()
 const posts = ref([])
 const isLoading = ref(true)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
-onMounted(async () => {
+async function loadPosts() {
+  isLoading.value = true
   try {
-    const response = await api.get('/posts')
-    posts.value = response.data
+    const response = await api.get('/posts', {
+      params: {
+        page: currentPage.value,
+        size: pageSize.value,
+      },
+    })
+    posts.value = response.data.items
+    total.value = response.data.total
   } catch (error) {
-    console.error('목록 로드 실패:', error)
+    ElMessage.error('게시글 목록을 불러오지 못했습니다.')
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadPosts()
 })
 
-async function handleDelete(postId) {
-  if (confirm('정말 삭제하시겠습니까?')) {
-    await api.delete(`/posts/${postId}`)
-    posts.value = posts.value.filter(p => p.id !== postId)
-  }
+function handlePageChange(page) {
+  currentPage.value = page
+  loadPosts()
+}
+
+function formatDate(row) {
+  return new Date(row.created_at).toLocaleDateString()
+}
+
+function goToDetail(row) {
+  router.push(`/posts/${row.id}`)
 }
 </script>
 
 <template>
-  <h2>게시판</h2>
-  <p v-if="isLoading">로딩 중...</p>
-  <div v-else>
-    <PostCard
-      v-for="post in posts"
-      :key="post.id"
-      :post="post"
-      @delete="handleDelete"
+  <div>
+    <h2>게시판</h2>
+    <el-button type="primary" @click="router.push('/posts/new')">
+      새 글 작성
+    </el-button>
+
+    <el-table
+      :data="posts"
+      v-loading="isLoading"
+      stripe
+      style="margin-top: 16px"
+      @row-click="goToDetail"
+    >
+      <el-table-column prop="id" label="번호" width="80" />
+      <el-table-column prop="title" label="제목" />
+      <el-table-column
+        label="작성일"
+        width="140"
+        :formatter="formatDate"
+      />
+    </el-table>
+
+    <el-pagination
+      v-if="total > pageSize"
+      layout="prev, pager, next"
+      :total="total"
+      :page-size="pageSize"
+      :current-page="currentPage"
+      style="margin-top: 16px; justify-content: center"
+      @current-change="handlePageChange"
     />
   </div>
-  <p v-if="!isLoading && posts.length === 0">
-    아직 게시글이 없습니다.
-  </p>
-  <RouterLink to="/posts/new">새 글 작성</RouterLink>
 </template>
