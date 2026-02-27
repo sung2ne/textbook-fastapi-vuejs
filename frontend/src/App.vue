@@ -1,18 +1,11 @@
 <script setup>
-import ProfileCard from './components/ProfileCard.vue'
+import { ref } from 'vue'
+
+const name = ref('')
 </script>
 
 <template>
-  <div>
-    <h1>컴포넌트 연습</h1>
-    <ProfileCard />
-  </div>
+  <h2>인사말 생성기</h2>
+  <input v-model="name" placeholder="이름을 입력하세요" />
+  <p v-if="name">안녕하세요, {{ name }}님!</p>
 </template>
-
-<style scoped>
-h1 {
-  color: #42b883;
-  text-align: center;
-  margin-top: 40px;
-}
-</style>
