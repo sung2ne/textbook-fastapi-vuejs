@@ -19,4 +19,5 @@ class PostResponse(BaseModel):
     title: str
     content: str
     image_url: str | None
+    author_id: int | None
     created_at: datetime
