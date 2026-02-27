@@ -11,6 +11,7 @@ const { isLoggedIn } = storeToRefs(auth)
     <h1>FastAPI + Vue 게시판</h1>
     <nav>
       <RouterLink to="/">홈</RouterLink>
+      <RouterLink to="/chat">채팅</RouterLink>
       <RouterLink to="/posts/new" v-if="isLoggedIn">
         새 글 작성
       </RouterLink>
