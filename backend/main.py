@@ -1,8 +1,10 @@
 from fastapi import FastAPI
-from datetime import datetime
-from app.schemas.post import PostCreate, PostResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.models.post import Post  # noqa: F401
+from app.routers import post as post_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="게시판 API",
@@ -10,9 +12,17 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# 테이블 생성
-Base.metadata.create_all(bind=engine)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# 임시 데이터 저장소
-posts_db = []
-next_id = 1
+app.include_router(post_router.router)
+
+
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
