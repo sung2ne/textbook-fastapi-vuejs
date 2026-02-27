@@ -1,24 +1,31 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 
+const route = useRoute()
 const router = useRouter()
 const title = ref('')
 const content = ref('')
 const isSubmitting = ref(false)
 
+onMounted(async () => {
+  const response = await api.get(`/posts/${route.params.id}`)
+  title.value = response.data.title
+  content.value = response.data.content
+})
+
 async function handleSubmit() {
   isSubmitting.value = true
   try {
-    await api.post('/posts', {
+    await api.put(`/posts/${route.params.id}`, {
       title: title.value,
       content: content.value,
     })
-    router.push('/')
+    router.push(`/posts/${route.params.id}`)
   } catch (error) {
-    console.error('작성 실패:', error)
-    alert('게시글 작성에 실패했습니다.')
+    console.error('수정 실패:', error)
+    alert('게시글 수정에 실패했습니다.')
   } finally {
     isSubmitting.value = false
   }
@@ -26,7 +33,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <h2>새 게시글</h2>
+  <h2>게시글 수정</h2>
   <form @submit.prevent="handleSubmit">
     <div>
       <label>제목</label>
@@ -37,7 +44,8 @@ async function handleSubmit() {
       <textarea v-model="content" required></textarea>
     </div>
     <button type="submit" :disabled="isSubmitting">
-      {{ isSubmitting ? '등록 중...' : '등록' }}
+      {{ isSubmitting ? '수정 중...' : '수정' }}
     </button>
+    <button type="button" @click="router.back()">취소</button>
   </form>
 </template>
